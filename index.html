@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApexBudget // Premium Expense Tracker</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Boxicons for Modern Vector Icons -->
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Background Glow FX -->
+  <div class="glow-bg">
+    <div class="glow-sphere glow-1"></div>
+    <div class="glow-sphere glow-2"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-logo">
+        <div class="logo-icon">
+          <i class="bx bx-trending-up"></i>
+        </div>
+        <div class="logo-text">
+          <h1>ApexBudget</h1>
+          <p>Full-Stack SQL Financial Intelligence</p>
+        </div>
+      </div>
+      <div class="header-meta">
+        <div class="connection-status" id="connectionStatus">
+          <span class="status-indicator online"></span>
+          <span class="status-text">Connected to SQL DB</span>
+        </div>
+        <div class="current-date" id="currentDate">August 25, 2026</div>
+      </div>
+    </header>
+
+    <!-- Error Alert Box -->
+    <div class="alert-box hidden" id="dbErrorAlert">
+      <div class="alert-content">
+        <i class="bx bx-error-circle alert-icon"></i>
+        <div class="alert-text">
+          <h4>Database Connection Error</h4>
+          <p id="dbErrorMessage">Could not connect to the MySQL database. Please verify your server is running and configured correctly in .env.</p>
+        </div>
+      </div>
+      <button class="alert-close-btn" id="closeAlertBtn"><i class="bx bx-x"></i></button>
+    </div>
+
+    <!-- Main Grid Dashboard -->
+    <main class="dashboard-grid">
+      <!-- LEFT COLUMN: Input & Metrics -->
+      <section class="dashboard-sidebar">
+        <!-- Cards: Metrics -->
+        <div class="metrics-container">
+          <!-- Total Balance Card -->
+          <div class="metric-card balance-card">
+            <div class="card-glow"></div>
+            <div class="card-header">
+              <span class="card-title">Net Balance</span>
+              <div class="card-icon"><i class="bx bx-wallet"></i></div>
+            </div>
+            <h2 class="card-value" id="netBalance">₹0.00</h2>
+            <div class="card-footer">
+              <span class="footer-trend positive" id="balanceTrend">
+                <i class="bx bx-shield-quarter"></i> Securely synced to MySQL
+              </span>
+            </div>
+          </div>
+
+          <!-- Income/Expense Subgrid -->
+          <div class="metrics-subgrid">
+            <!-- Total Income Card -->
+            <div class="metric-card income-card">
+              <div class="card-header">
+                <span class="card-title">Total Income</span>
+                <div class="card-icon"><i class="bx bx-up-arrow-alt"></i></div>
+              </div>
+              <h3 class="card-value text-green" id="totalIncome">₹0.00</h3>
+            </div>
+
+            <!-- Total Expenses Card -->
+            <div class="metric-card expense-card">
+              <div class="card-header">
+                <span class="card-title">Total Expenses</span>
+                <div class="card-icon"><i class="bx bx-down-arrow-alt"></i></div>
+              </div>
+              <h3 class="card-value text-red" id="totalExpenses">₹0.00</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card: Add Transaction -->
+        <div class="glass-card transaction-form-card">
+          <div class="card-header-styled">
+            <h3><i class="bx bx-plus-circle"></i> Add Transaction</h3>
+          </div>
+          <form id="transactionForm" class="transaction-form" novalidate>
+            <!-- Transaction Type Selector Tabs -->
+            <div class="type-selector-tabs">
+              <input type="radio" id="typeExpense" name="transactionType" value="expense" checked>
+              <label for="typeExpense" class="tab-label label-expense">
+                <i class="bx bx-minus-circle"></i> Expense
+              </label>
+
+              <input type="radio" id="typeIncome" name="transactionType" value="income">
+              <label for="typeIncome" class="tab-label label-income">
+                <i class="bx bx-plus-circle"></i> Income
+              </label>
+            </div>
+
+            <!-- Amount Input -->
+            <div class="form-group">
+              <label for="amount">Amount (₹)</label>
+              <div class="input-wrapper amount-wrapper">
+                <span class="input-prefix">₹</span>
+                <input type="number" id="amount" placeholder="0.00" min="0.01" step="0.01" required>
+              </div>
+              <span class="validation-error" id="amountError">Please enter a valid amount greater than 0</span>
+            </div>
+
+            <!-- Category Selector -->
+            <div class="form-group">
+              <label for="category">Category</label>
+              <div class="input-wrapper">
+                <i class="bx bx-category-alt input-icon"></i>
+                <select id="category" required>
+                  <!-- Will be loaded dynamically for Expense vs Income -->
+                </select>
+              </div>
+              <span class="validation-error" id="categoryError">Please select a category</span>
+            </div>
+
+            <!-- Date Selector -->
+            <div class="form-group">
+              <label for="date">Date</label>
+              <div class="input-wrapper">
+                <i class="bx bx-calendar input-icon"></i>
+                <input type="date" id="date" required>
+              </div>
+              <span class="validation-error" id="dateError">Please select a valid date</span>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+              <label for="description">Description (Optional)</label>
+              <div class="input-wrapper">
+                <i class="bx bx-detail input-icon"></i>
+                <input type="text" id="description" placeholder="e.g. Weekly Groceries, Gas, Salary">
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="submitBtn">
+              <span id="btnText">Save Transaction</span>
+              <span class="btn-spinner hidden"><i class="bx bx-loader-alt bx-spin"></i></span>
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: Charts & Logs -->
+      <section class="dashboard-main">
+        <!-- Card: Category Visual Breakdown -->
+        <div class="glass-card analytics-card">
+          <div class="card-header-styled">
+            <h3><i class="bx bx-pie-chart-alt-2"></i> Category Analytics</h3>
+            <span class="analytics-subtitle">Expense Breakdown</span>
+          </div>
+          <div class="analytics-content">
+            <!-- Chart Container -->
+            <div class="chart-wrapper">
+              <canvas id="categoryChart"></canvas>
+              <!-- Empty state for Chart -->
+              <div class="chart-empty-state hidden" id="chartEmptyState">
+                <i class="bx bx-pie-chart-alt"></i>
+                <p>No expense data available. Add expenses to generate insights.</p>
+              </div>
+            </div>
+
+            <!-- Category Progress Bars (Custom breakdown) -->
+            <div class="category-bars-list" id="categoryBarsList">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Card: Transaction History -->
+        <div class="glass-card history-card">
+          <div class="card-header-styled flex-between">
+            <h3><i class="bx bx-history"></i> Transaction Log</h3>
+            <span class="history-count" id="historyCount">0 Transactions</span>
+          </div>
+
+          <!-- Filters and Search Toolbar -->
+          <div class="toolbar-container">
+            <div class="search-wrapper">
+              <i class="bx bx-search search-icon"></i>
+              <input type="text" id="searchInput" placeholder="Search by description...">
+            </div>
+            
+            <div class="filters-wrapper">
+              <select id="filterType" class="toolbar-select">
+                <option value="all">All Types</option>
+                <option value="income">Income Only</option>
+                <option value="expense">Expenses Only</option>
+              </select>
+
+              <select id="filterCategory" class="toolbar-select">
+                <option value="all">All Categories</option>
+                <!-- Dynamically loaded -->
+              </select>
+
+              <select id="sortBy" class="toolbar-select">
+                <option value="date-desc">Newest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="amount-desc">Amount: High to Low</option>
+                <option value="amount-asc">Amount: Low to High</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Transaction List -->
+          <div class="transaction-list-container">
+            <div class="transaction-list" id="transactionList">
+              <!-- Dynamically populated -->
+            </div>
+            <!-- Empty state for List -->
+            <div class="list-empty-state hidden" id="listEmptyState">
+              <i class="bx bx-receipt empty-icon"></i>
+              <h3>No Transactions Found</h3>
+              <p>Try clearing filters or adding a new transaction to get started.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <p>ApexBudget &copy; 2026. Premium interface backed by high-performance SQL Storage.</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Local Environment Credentials
+.env
+
+# SQL Local Database Files (in case any are created locally)
+*.sqlite
+*.sqlite3
+*.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# Editor / OS Directories
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
